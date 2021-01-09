@@ -24,7 +24,7 @@ public class Database {
 	private Database() {
 	users = new Hashtable<>();
 	courses = new Hashtable<>();
-	initialize("Server/Courses.txt"); //TODO Verify filepath
+	initialize("Courses.txt"); //TODO Verify filepath
 	}
 
 
