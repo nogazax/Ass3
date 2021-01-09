@@ -22,7 +22,6 @@ public class ReactorMain {
                                      ,()-> {return new MessagingProtocolImpl<>();}
                                      ,()->{return new MessageEncoderDecoderImpl<>();}
         );
-
         server.serve();
     }
 }

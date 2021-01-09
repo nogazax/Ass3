@@ -1,4 +1,5 @@
 package bgu.spl.net.api;
+
 import bgu.spl.net.srv.Course;
 import bgu.spl.net.srv.Database;
 import bgu.spl.net.srv.User;
@@ -17,6 +18,7 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<Message> {
         db = Database.getInstance();
 
     }
+
     @Override
     public Message process(Message m) {
         Command cmd = (Command) m;
@@ -34,115 +36,124 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<Message> {
             case 6:
                 return kdamCheck(cmd);
             case 7:
-                return   courseStat(cmd);
+                return courseStat(cmd);
             case 8:
-                return   studentStat(cmd);
+                return studentStat(cmd);
             case 9:
-                return  isReg(cmd);
+                return isReg(cmd);
             case 10:
-                return  unReg(cmd);
+                return unReg(cmd);
             case 11:
-                return  myCourses(cmd);
+                return myCourses(cmd);
         }
         return null; // we will never get here, as opcode is always ok (by assumption)
     }
 
 
-    private String getUserName(Command cmd){
+    private String getUserName(Command cmd) {
         return cmd.getUserName();
     }
 
-    private String getUserPass(Command cmd){
+    private String getUserPass(Command cmd) {
         return cmd.getPass();
     }
 
-    private boolean logged(){
-        return user!=null;
+    private boolean logged() {
+        return user != null;
     }
 
-    private Response adminReg(Command cmd){
+    private Response adminReg(Command cmd) {
 
-        if (!logged()&&db.register(cmd.getUserName(),cmd.getPass() ,true))
-            return new Response(true,cmd.getOpcode());
-        return new Response(false,cmd.getOpcode());
+        if (!logged() && db.register(cmd.getUserName(), cmd.getPass(), true))
+            return new Response(true, cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
 
     }
 
 
-    private Response studentReg(Command cmd){
-        if (!logged()&&db.register(cmd.getUserName(),cmd.getPass() ,false))
-            return new Response(true,cmd.getOpcode());
-        return new Response(false,cmd.getOpcode());
+    private Response studentReg(Command cmd) {
+        if (!logged() && db.register(cmd.getUserName(), cmd.getPass(), false))
+            return new Response(true, cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
     }
 
-    private Response login(Command cmd){
+    private Response login(Command cmd) {
 
         //check that client is not logged in already
         String userName = cmd.getUserName();
-        if (!logged()&&db.login(userName,cmd.getPass())) {
+        if (!logged() && db.login(userName, cmd.getPass())) {
             user = db.getUser(userName);
-            return new Response(true,cmd.getOpcode());
+            return new Response(true, cmd.getOpcode());
         }
-        return new Response(false,cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
 
     }
+
     //check that client is  logged in
     private Response logout(Command cmd) {
         if (logged() && db.logout(user)) {
             shouldStop = true; //======sure is that needed? TPC?
             return new Response(true, cmd.getOpcode());
         }
-        return new Response(false,cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
     }
 
-    private Response courseReg(Command cmd){
+    private Response courseReg(Command cmd) {
         //check that client is logged in already, and is a student (and not admin)
         if (logged() && !user.isAdmin()) {
             int courseNum = cmd.getCourse();
             if (db.courseReg(user.getUserName(), courseNum))//may recieve false if reg not successful
-                return new Response(true,cmd.getOpcode());
+                return new Response(true, cmd.getOpcode());
         }
-        return new Response(false,cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
     }
 
-    private Response kdamCheck(Command cmd){
+    private Response kdamCheck(Command cmd) {
         //check that client is logged in already, and is a student (and not admin)
         if (logged() && !user.isAdmin()) {
             LinkedList<Integer> ans = db.kdamCheck(cmd.getCourse());
-            if (ans != null) // we get null if the course does not exist
-                return new Response(cmd.getOpcode(), ans.toString());
+            if (ans != null) {// we get null if the course does not exist
+                String output = ans.toString().replaceAll(" ","");
+                return new Response(cmd.getOpcode(), output);
+            }
         }
-        return new Response(false,cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
 
     }
-    private Response courseStat(Command cmd){
+
+    private Response courseStat(Command cmd) {
         //check that client is  logged in already, and is an admin
         if (logged() && user.isAdmin()) {
             Course course = db.getCourse(cmd.getCourse());
             // if course exists
-            if (course!=null) {
+            if (course != null) {
                 // sort list alphabetically, and send it
                 // when we sort it, locking so no one is registering to this course
                 String ans;
                 synchronized (course) {
+                    int capacity = course.getCapacity();
+                    int seatsRemaining = capacity - course.getRegStudents().size();
+                    String studentsRegged = course.getRegStudents().toString();
+                    studentsRegged = studentsRegged.replaceAll(" ", "");
                     java.util.Collections.sort(course.getRegStudents());
                     ans = "Course: (" + course.getCourseNum() + ") " + course.getCourseName() + "\n" +
-                            "Seats Available: " + course.getRegStudents().size() + " / " + course.getCapacity() + "\n" +
-                            "Students Registered: " + course.getRegStudents().toString();
+                            "Seats Available: " + seatsRemaining + " / " + capacity + "\n" +
+                            "Students Registered: " + studentsRegged;
                 }
                 return new Response(cmd.getOpcode(), ans);
 
             }
         }
-        return new Response(false,cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
 
     }
-    private Response studentStat(Command cmd){
+
+    private Response studentStat(Command cmd) {
         //check that client is  logged in already, and is an admin
         if (logged() && user.isAdmin()) {
             User requestedUser = db.getUser(cmd.getUserName());
             // check if exists such student, and is not an admin
-            if (requestedUser!=null && !requestedUser.isAdmin()) {
+            if (requestedUser != null && !requestedUser.isAdmin()) {
                 // locking on a student, so it cannot register to courses while printing it's data
                 String ans;
                 synchronized (requestedUser) {
@@ -156,18 +167,18 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<Message> {
                         }
                     });
                     ans = "Student: " + requestedUser.getUserName() + "\n" +
-                            "Courses: " + requestedUser.getRegCourses().toString();
-                    return new Response(cmd.getOpcode(),ans);
+                            "Courses: " + requestedUser.getRegCourses().toString().replaceAll(" ","");
+                    return new Response(cmd.getOpcode(), ans);
                 }
             }
         }
-        return new Response(false,cmd.getOpcode());
+        return new Response(false, cmd.getOpcode());
     }
 
-    private Response isReg(Command cmd){
+    private Response isReg(Command cmd) {
 
         // check if stud exists and not admin
-        if (logged()&&!user.isAdmin()){
+        if (logged() && !user.isAdmin()) {
             // if reg
             if (db.isReg(user.getUserName(), cmd.getCourse()))
                 return new Response(cmd.getOpcode(), "REGISTERED");
@@ -177,27 +188,26 @@ public class MessagingProtocolImpl<T> implements MessagingProtocol<Message> {
         return new Response(false, cmd.getOpcode());
     }
 
-    private Response unReg(Command cmd){
+    private Response unReg(Command cmd) {
 
-        if (logged()&&!user.isAdmin()){
+        if (logged() && !user.isAdmin()) {
             // try to unreg
             if (db.unReg(user.getUserName(), cmd.getCourse()))
-                return new Response(true,cmd.getOpcode());
+                return new Response(true, cmd.getOpcode());
         }
         return new Response(false, cmd.getOpcode());
     }
 
-    private Response myCourses(Command cmd){
-        if (logged()&&!user.isAdmin()) {
+    private Response myCourses(Command cmd) {
+        if (logged() && !user.isAdmin()) {
             synchronized (user) { // so no admin looks to sort the student's list
                 // ans = students reged courses
                 LinkedList ans = db.myCourses(user);
-                return new Response(cmd.getOpcode(), ans.toString());
+                return new Response(cmd.getOpcode(), ans.toString().replaceAll(" ",""));
             }
         }
         return new Response(false, cmd.getOpcode());
     }
-
 
 
     @Override
