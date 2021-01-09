@@ -4,4 +4,4 @@
 
 912|Advance Swordsmanship|[530]|5
 
-530|Intermediate Swordsmanship|[]|25
+530|Intermediate Swordsmanship|[]|3
