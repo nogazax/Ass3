@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/spl211/Downloads/316490259_205918113 (1)/Client/include/connectionHandler.h
+string
+-
+iostream
+-
+boost/asio.hpp
+-
+
+/home/spl211/Downloads/316490259_205918113 (1)/Client/include/inputTaker.h
+connectionHandler.h
+/home/spl211/Downloads/316490259_205918113 (1)/Client/include/connectionHandler.h
+
+/home/spl211/Downloads/316490259_205918113 (1)/Client/src/connectionHandler.cpp
+../include/inputTaker.h
+/home/spl211/Downloads/316490259_205918113 (1)/Client/include/inputTaker.h
+iostream
+-
+thread
+-
+string
+-
+
+/home/spl211/Downloads/316490259_205918113 (1)/Client/src/inputTaker.cpp
+../include/inputTaker.h
+/home/spl211/Downloads/316490259_205918113 (1)/Client/include/inputTaker.h
+

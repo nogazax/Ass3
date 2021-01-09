@@ -1,0 +1,1 @@
+/usr/bin/c++   -pthread -g   CMakeFiles/316490259_205918113__1_.dir/Client/src/connectionHandler.cpp.o CMakeFiles/316490259_205918113__1_.dir/Client/src/inputTaker.cpp.o  -o 316490259_205918113__1_  /usr/lib/x86_64-linux-gnu/libboost_system.a 

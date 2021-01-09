@@ -2,9 +2,10 @@
 // Created by spl211 on 02/01/2021.
 //
 
+#include "../include/inputTaker.h"
+
 using namespace std;
-#include "inputTaker.h"
-#include "connectionHandler.h"
+
 
 inputTaker::inputTaker(ConnectionHandler &CH) : ch(CH) {}
 

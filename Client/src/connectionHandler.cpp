@@ -1,5 +1,5 @@
-#include "connectionHandler.h"
-#include "inputTaker.h"
+
+#include "../include/inputTaker.h"
 #include <iostream>
 #include <thread>
 #include <string>
